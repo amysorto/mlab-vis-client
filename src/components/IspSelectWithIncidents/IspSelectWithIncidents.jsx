@@ -30,6 +30,11 @@ export default class IspSelectWithIncidents extends PureComponent {
    */
   constructor(props) {
     super(props);
+
+    this.state = {
+      isDropdownToggled: false,
+    };
+
     this.onAdd = this.onAdd.bind(this);
     this.onRemove = this.onRemove.bind(this);
     this.showIncident = this.showIncident.bind(this);
@@ -110,20 +115,25 @@ export default class IspSelectWithIncidents extends PureComponent {
    * See Issue #20 for more about this possible code-health improvement.
    */
   toggleDropdown() {
-    const items = document.getElementById('items');
-    const anchor = document.getElementById('anchor');
-    const arrow = document.getElementById('dropdown-arrow');
-    if (items.classList.contains('visible')) {
-      items.classList.remove('visible');
-      items.style.display = 'none';
-      arrow.style.transform = 'none';
-      anchor.style.borderRadius = '4px';
-    } else {
-      items.classList.add('visible');
-      items.style.display = 'block';
-      anchor.style.borderRadius = '4px 4px 0px 0px';
-      arrow.style.transform = 'translateY(6px) rotate(180deg)';
-    }
+    this.setState({
+      isDropdownToggled: !this.state.isDropdownToggled,
+    });
+
+    // isDropdownToggled
+    // const items = document.getElementById('items');
+    // const anchor = document.getElementById('anchor');
+    // const arrow = document.getElementById('dropdown-arrow');
+    // if (items.classList.contains('visible')) {
+    //   items.classList.remove('visible');
+    //   items.style.display = 'none';
+    //   arrow.style.transform = 'none';
+    //   anchor.style.borderRadius = '4px';
+    // } else {
+    //   items.classList.add('visible');
+    //   items.style.display = 'block';
+    //   anchor.style.borderRadius = '4px 4px 0px 0px';
+    //   arrow.style.transform = 'translateY(6px) rotate(180deg)';
+    // }
   }
 
   /**
@@ -174,6 +184,18 @@ export default class IspSelectWithIncidents extends PureComponent {
     const { isps, selected, incidentData } = this.props;
     const options = this.getOptions(isps, incidentData);
     const selectedASNs = selected.map(obj => obj.client_asn_number);
+    let itemsClass;
+    let anchorClass;
+    let arrowClass;
+    if (this.state.isDropdownToggled) {
+      itemsClass = 'showItems';
+      anchorClass = 'showAnchor';
+      arrowClass = 'showArrow';
+    } else {
+      itemsClass = 'hideItems';
+      anchorClass = 'hideAnchor';
+      arrowClass = 'hideArrow';
+    }
 
     const items = options.map(option => {
       const checkedVal = !!selectedASNs.includes(option.value);
@@ -204,10 +226,10 @@ export default class IspSelectWithIncidents extends PureComponent {
 
     return (
       <div className="dropdownCheckList">
-        <span id="anchor" className="anchor" onClick={this.toggleDropdown}>Select Client ISP to view
-          <Icon id="dropdown-arrow" className="dropdown-arrow" name="sort-down" />
+        <span id="anchor" className={`anchor ${anchorClass}`} onClick={this.toggleDropdown}>Select Client ISP to view
+          <Icon id="dropdown-arrow" className={`dropdown-arrow ${arrowClass}`} name="sort-down" />
         </span>
-        <ul id="items" className="items">
+        <ul id="items" className={`items ${itemsClass}`}>
           {items}
         </ul>
       </div>

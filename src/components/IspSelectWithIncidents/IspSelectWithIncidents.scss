@@ -83,3 +83,23 @@
   -o-transition:0.1s linear;
   transition: 0.1s linear;
 }
+
+.showItems {
+  display: block;
+}
+
+.hideItems {
+  display: none;
+}
+
+.showAnchor {
+  border-radius: 4px;
+}
+
+.hideAnchor {
+  border-radius: 4px 4px 0px 0px;
+}
+
+.showArrow {
+  transform: translateY(6px) rotate(180deg);
+}
