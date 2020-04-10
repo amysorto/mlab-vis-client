@@ -3,6 +3,7 @@ import Helmet from 'react-helmet';
 import { batchActions } from 'redux-batched-actions';
 import { browserHistory } from 'react-router';
 import momentPropTypes from 'react-moment-proptypes';
+import moment from 'moment';
 import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
 import AutoWidth from 'react-auto-width';
@@ -25,6 +26,7 @@ import {
   MetricSelector,
   TimeAggregationSelector,
   StatusWrapper,
+  IspSelectWithIncidents,
   IspSelect,
   DateRangeSelector,
   Breadcrumbs,
@@ -65,6 +67,22 @@ const fixedFields = [
   { id: 'lastSixMonths', label: 'Last Six Months' },
   { id: 'lastYear', label: 'Last Year' },
 ];
+
+// TODO: Replace once API is implemented, currently reading in the sample incident data
+// eslint-disable-next-line global-require
+const incidentData = require('./sample_data/demo_incidentData.json');
+
+// convert dates to moment objects within the incidentData object
+if (incidentData) {
+  for (const asn in incidentData) {
+    for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
+      incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
+      incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
+      incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
+      incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
+    }
+  }
+}
 
 function mapStateToProps(state, propsWithUrl) {
   return {
@@ -128,6 +146,10 @@ class LocationPage extends PureComponent {
   constructor(props) {
     super(props);
 
+    this.state = {
+      incident_asn: null, // This is the selected ISP object
+    };
+
     // bind handlers
     this.onHighlightHourly = this.onHighlightHourly.bind(this);
     this.onHighlightTimeSeriesDate = this.onHighlightTimeSeriesDate.bind(this);
@@ -138,7 +160,9 @@ class LocationPage extends PureComponent {
     this.onCompareMetricsChange = this.onCompareMetricsChange.bind(this);
     this.onTimeAggregationChange = this.onTimeAggregationChange.bind(this);
     this.onSelectedClientIspsChange = this.onSelectedClientIspsChange.bind(this);
+    this.onShowIncidentChange = this.onShowIncidentChange.bind(this);
     this.onDateRangeChange = this.onDateRangeChange.bind(this);
+    this.changeIncidentASN = this.changeIncidentASN.bind(this);
   }
 
   componentDidMount() {
@@ -285,6 +309,22 @@ class LocationPage extends PureComponent {
   }
 
   /**
+   * Callback to show an incident and change the time aggregation to month
+   * @param {Array} ispIds Ids of ISPs to select or deselect based on current selection state
+   */
+  onShowIncidentChange(ispIds) {
+    const { dispatch } = this.props;
+    const actions = [];
+
+    actions.push(LocationPageActions.changeSelectedClientIspIds(ispIds));
+    actions.push(LocationPageActions.changeTimeAggregation('month'));
+
+    if (actions.length) {
+      dispatch(batchActions(actions));
+    }
+  }
+
+  /**
    * Callback for when start or end date is changed
    * @param {Date} startDate new startDate
    * @param {Date} endDate new endDate
@@ -313,6 +353,14 @@ class LocationPage extends PureComponent {
   }
 
   /**
+   * Change the state to render incidents for a specified ISP (if it has an incident)
+   * @param {String} asn the asn number for the incident object if specified
+   */
+  changeIncidentASN(asn) {
+    this.setState({ incident_asn: asn }, () => {});
+  }
+
+  /**
    * Helper to get the extent key based on the metric
    *
    * Combines upload and download as 'throughput'
@@ -332,6 +380,7 @@ class LocationPage extends PureComponent {
   renderCityProviders() {
     const { locationInfo } = this.props;
     const locationName = (locationInfo && (locationInfo.shortLabel || locationInfo.label)) || 'Loading...';
+
     return (
       <div className="section">
         <header>
@@ -347,7 +396,7 @@ class LocationPage extends PureComponent {
         </header>
         <Row>
           <Col md={3}>
-            {this.renderClientIspSelector()}
+            {this.renderClientIspSelectorWithIncidents()}
             {this.renderMetricSelector()}
             {this.renderTimeAggregationSelector()}
           </Col>
@@ -377,6 +426,30 @@ class LocationPage extends PureComponent {
         endDate={endDate}
         onChange={this.onDateRangeChange}
       />
+    );
+  }
+
+  renderClientIspSelectorWithIncidents() {
+    const { topClientIsps = [], selectedClientIspInfo } = this.props;
+
+    // Create ASN Number to ISP Object dictionary
+    const asnToISPObj = {};
+    for (const currIsp in topClientIsps) {
+      asnToISPObj[topClientIsps[currIsp].client_asn_number] = topClientIsps[currIsp];
+    }
+
+    return (
+      <div className="client-isp-selector">
+        <h5>Client ISPs <HelpTip id="client-isp-tip" /></h5>
+        <IspSelectWithIncidents
+          incidentData={incidentData}
+          isps={asnToISPObj}
+          selected={selectedClientIspInfo}
+          onChange={this.onSelectedClientIspsChange}
+          onShowIncident={this.onShowIncidentChange}
+          onChangeIncidentASN={this.changeIncidentASN}
+        />
+      </div>
     );
   }
 
@@ -482,6 +555,8 @@ class LocationPage extends PureComponent {
               highlightDate={highlightTimeSeriesDate}
               onHighlightLine={this.onHighlightTimeSeriesLine}
               highlightLine={highlightTimeSeriesLine}
+              incidentData={incidentData}
+              selectedASN={this.state.incident_asn ? this.state.incident_asn : null}
               yFormatter={viewMetric.formatter}
               xKey="date"
               yAxisLabel={viewMetric.label}
