@@ -31,7 +31,7 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.jsx?$/, exclude: /node_modules/, loaders: [strip.loader('debug'), 'babel'] },
+      { test: /\.jsx?$/, exclude: /node_modules/, loaders: [strip.loader('debug'), 'babel', 'node-loader','mocha-loader'] },
       { test: /\.json$/, loader: 'json-loader' },
       { test: /\.less$/, loader: ExtractTextPlugin.extract('style', 'css!postcss!less') },
       { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css!postcss!sass') },
