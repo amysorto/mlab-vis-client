@@ -33,7 +33,7 @@ function getLocationPath(locationCode){
 }
 
 
-const storage = new Storage({keyFilename: "hmc-mlab-clinic-2019-bb5aabf9d64a.json"});
+const storage = new Storage({keyFilename: "hmc-mlab-clinic-2019-e7987b0ad1cb.json"});
 const bucketName = "incidents-location-hierarchy";
 
 // code from Human who Codes: 
@@ -56,12 +56,14 @@ function readStream(stream) {
  * @return {dictionary}
  */
 async function getIncidents(startDate, endDate, locationCode){
+    
     let dict= {};
 
     const [files] = await storage.bucket(bucketName).getFiles({prefix:getLocationPath(locationCode)});
+    console.log(getLocationPath(locationCode))
     for (let i = 0; i < files.length; i++){
-        let file = files[i];
-        let stream = file.createReadStream();
+        let file = files[i]
+        let stream = file.createReadStream()
         let incidents = await readStream(stream)
         incidents = JSON.parse(incidents)
         for (let j = 0; j < incidents.length; j++) {
@@ -83,7 +85,7 @@ async function getIncidents(startDate, endDate, locationCode){
 
 // example front end call to API
 async function frontEndCall(){
-    let D = await getIncidents('2015-04-30T00:00:00Z', '2019-03-05T00:00:00Z','eufr').catch(console.error)
+    let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','eufr').catch(console.error)
     console.log(D)
 }
 frontEndCall()
