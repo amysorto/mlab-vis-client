@@ -15,20 +15,20 @@ function getLocationPath(locationCode) {
       locationCodesArr.push(locationCode.slice(i, i + 2));
     }
 
-    locationCodesArr.push(locationCode.slice(6));
-  }
+		locationCodesArr.push(locationCode.slice(6))
+    } else {
+        for (let i = 0; i < locationCode.length; i = i+2) {
+            locationCodesArr.push(locationCode.slice(i,i+2));
+        }
+    }
+    let path = ""
 
-  for (let i = 0; i < locationCode.length; i += 2) {
-    locationCodesArr.push(locationCode.slice(i, i + 2));
-  }
-
-  let path = '';
-
-  for (let i = 0; i < locationCodesArr.length; i++) {
-    path += locationCodesArr[i];
-    path += '/';
-  }
-  return path;
+    for (let i = 0; i < locationCodesArr.length; i++){
+            path += locationCodesArr[i];
+            path += "/";
+    }
+    console.log(path)
+	return path
 }
 
 
@@ -53,36 +53,37 @@ function readStream(stream) {
  * @param {Moment, Moment, string}
  * @return {dictionary}
  */
-async function getIncidents(startDate, endDate, locationCode) {
-  const dict = {};
+async function getIncidents(startDate, endDate, locationCode){
+    
+    let dict= {};
 
-  const [files] = await storage.bucket(bucketName).getFiles({ prefix: getLocationPath(locationCode) });
-  console.log(getLocationPath(locationCode));
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const stream = file.createReadStream();
-    let incidents = await readStream(stream);
-    incidents = JSON.parse(incidents);
-    for (let j = 0; j < incidents.length; j++) {
-      const incident = incidents[j];
-      if (moment(incident.goodPeriodStart).isAfter(startDate) && moment(incident.badPeriodEnd).isBefore(endDate)) {
-        const asn = incident.aSN;
-        if (asn in dict) {
-          dict[asn] = dict[asn].push(incident);
-        } else {
-          dict[asn] = [incident];
+    const [files] = await storage.bucket(bucketName).getFiles({prefix:getLocationPath(locationCode)});
+    for (let i = 0; i < files.length; i++){
+        let file = files[i]
+        let stream = file.createReadStream();
+        let incidents = await readStream(stream);
+        incidents = JSON.parse(incidents);
+        for (let j = 0; j < incidents.length; j++) {
+            let incident = incidents[j];
+            if (moment(incident["goodPeriodStart"]).isAfter(startDate) && moment(incident["badPeriodEnd"]).isBefore(endDate)) {
+                let asn = incident["aSN"];
+                if (asn in dict){
+                    dict[asn] = dict[asn].push(incident);
+                } else{
+                    dict[asn] = [incident];
+                }
+            }
         }
       }
     }
   }
-
   return dict;
 }
 
 // example front end call to API
-async function frontEndCall() {
-  const D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z', 'nausca').catch(console.error);
-  console.log(D);
+async function frontEndCall(){
+    let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
+    // console.log(D)
 }
 frontEndCall();
 
