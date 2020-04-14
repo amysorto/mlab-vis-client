@@ -80,7 +80,9 @@ module.exports = function (config) {
         'react/lib/ReactContext': true
       },
     },
-
+    node: {
+      fs: 'empty'
+    },
     webpackServer: {
       noInfo: true
     }

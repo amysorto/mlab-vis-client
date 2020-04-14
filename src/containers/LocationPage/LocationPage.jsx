@@ -68,9 +68,8 @@ const fixedFields = [
   { id: 'lastYear', label: 'Last Year' },
 ];
 
-// TODO: Replace once API is implemented, currently reading in the sample incident data
-// eslint-disable-next-line global-require
-const incidentData = require('./sample_data/demo_incidentData.json');
+// TODO: use Rui-Jie's function here to populate the incident dict
+const incidentData = undefined;
 
 // convert dates to moment objects within the incidentData object
 if (incidentData) {
