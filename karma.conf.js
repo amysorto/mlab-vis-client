@@ -43,7 +43,7 @@ module.exports = function (config) {
               presets: ['react', 'es2015', 'stage-3'],
               plugins: [
                 'transform-export-extensions',
-                'transform-class-properties',
+                'transform-giclass-properties',
               ]
             }
           },
