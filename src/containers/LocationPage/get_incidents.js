@@ -2,7 +2,6 @@
 let moment = require('moment');
 const {Storage} = require('@google-cloud/storage');
 
-
 /**
  * Takes location code and inserts / where needed for file path
  * @param {string}
@@ -17,18 +16,18 @@ function getLocationPath(locationCode){
 		}
 
 		locationCodesArr.push(locationCode.slice(6))
-	}
-
-	for (let i = 0; i < locationCode.length; i = i+2) {
-		locationCodesArr.push(locationCode.slice(i,i+2))
+    } else {
+        for (let i = 0; i < locationCode.length; i = i+2) {
+            locationCodesArr.push(locationCode.slice(i,i+2))
+        }
     }
-
     let path = ""
 
     for (let i = 0; i < locationCodesArr.length; i++){
             path += locationCodesArr[i] 
             path += "/" 
     }
+    console.log(path)
 	return path
 }
 
@@ -60,7 +59,6 @@ async function getIncidents(startDate, endDate, locationCode){
     let dict= {};
 
     const [files] = await storage.bucket(bucketName).getFiles({prefix:getLocationPath(locationCode)});
-    console.log(getLocationPath(locationCode))
     for (let i = 0; i < files.length; i++){
         let file = files[i]
         let stream = file.createReadStream()
@@ -72,8 +70,7 @@ async function getIncidents(startDate, endDate, locationCode){
                 let asn = incident["aSN"]
                 if (asn in dict){
                     dict[asn] = dict[asn].push(incident)
-                }
-                else{
+                } else{
                     dict[asn] = [incident]
                 }
             }
@@ -85,8 +82,8 @@ async function getIncidents(startDate, endDate, locationCode){
 
 // example front end call to API
 async function frontEndCall(){
-    let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','eufr').catch(console.error)
-    console.log(D)
+    let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
+    // console.log(D)
 }
 frontEndCall()
 
