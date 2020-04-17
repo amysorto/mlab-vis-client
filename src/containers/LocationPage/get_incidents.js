@@ -1,6 +1,7 @@
 const moment = require('moment');
 
-const { Storage } = require('@google-cloud/storage');
+// const { Storage } = require('@google-cloud/storage');
+var Storage = require('@google-cloud/storage')
 
 /**
  * Takes location code and inserts / where needed for file path
@@ -53,37 +54,33 @@ function readStream(stream) {
  * @param {Moment, Moment, string}
  * @return {dictionary}
  */
-async function getIncidents(startDate, endDate, locationCode){
-    
-    let dict= {};
-
-    const [files] = await storage.bucket(bucketName).getFiles({prefix:getLocationPath(locationCode)});
-    for (let i = 0; i < files.length; i++){
-        let file = files[i]
-        let stream = file.createReadStream();
-        let incidents = await readStream(stream);
-        incidents = JSON.parse(incidents);
-        for (let j = 0; j < incidents.length; j++) {
-            let incident = incidents[j];
-            if (moment(incident["goodPeriodStart"]).isAfter(startDate) && moment(incident["badPeriodEnd"]).isBefore(endDate)) {
-                let asn = incident["aSN"];
-                if (asn in dict){
-                    dict[asn] = dict[asn].push(incident);
-                } else{
-                    dict[asn] = [incident];
-                }
-            }
-        }
-      }
-    }
+export default async function getIncidents(startDate, endDate, locationCode){
+      let dict= {};
+  
+      const [files] = await storage.bucket(bucketName).getFiles({prefix:getLocationPath(locationCode)});
+      for (let i = 0; i < files.length; i++){
+          let file = files[i]
+          let stream = file.createReadStream()
+          let incidents = await readStream(stream)
+          incidents = JSON.parse(incidents)
+          for (let j = 0; j < incidents.length; j++) {
+              let incident = incidents[j]
+              if (moment(incident["goodPeriodStart"]).isAfter(startDate) && moment(incident["badPeriodEnd"]).isBefore(endDate)){
+                  let asn = incident["aSN"]
+                  if (asn in dict){
+                      dict[asn] = dict[asn].push(incident)
+                  } else{
+                      dict[asn] = [incident]
+                  }
+              }
+          }
+      }
+      
+      return dict
   }
-  return dict;
-}
 
 // example front end call to API
-async function frontEndCall(){
-    let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
-    // console.log(D)
-}
-frontEndCall();
-
+// async function frontEndCall(){
+//     let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
+//     // console.log(D)
+// }

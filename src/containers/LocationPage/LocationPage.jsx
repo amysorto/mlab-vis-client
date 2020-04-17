@@ -43,6 +43,7 @@ import urlConnect from '../../url/urlConnect';
 import queryRebuild from '../../url/queryRebuild';
 
 import './LocationPage.scss';
+import getIncidents from './get_incidents.js';
 
 // Define how to read/write state to URL query parameters
 const urlQueryConfig = {
@@ -68,20 +69,28 @@ const fixedFields = [
   { id: 'lastYear', label: 'Last Year' },
 ];
 
-// TODO: use Rui-Jie's function here to populate the incident dict
-const incidentData = undefined;
+let incidentData = null;
 
-// convert dates to moment objects within the incidentData object
-if (incidentData) {
-  for (const asn in incidentData) {
-    for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
-      incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
-      incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
-      incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
-      incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
-    }
-  }
-}
+// TODO: use Rui-Jie's function here to populate the incident dict
+// const incidentData = undefined;
+// const incidentData = require('./sample_data/demo_incidentData.json');
+
+// // location code:
+// // time frame: 
+// // let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont')
+//   // .catch(console.error)
+
+// // convert dates to moment objects within the incidentData object
+// if (incidentData) {
+//   for (const asn in incidentData) {
+//     for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
+//       incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
+//       incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
+//       incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
+//       incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
+//     }
+//   }
+// }
 
 function mapStateToProps(state, propsWithUrl) {
   return {
@@ -108,7 +117,6 @@ function mapStateToProps(state, propsWithUrl) {
     viewMetric: LocationPageSelectors.getViewMetric(state, propsWithUrl),
   };
 }
-
 
 class LocationPage extends PureComponent {
   static propTypes = {
@@ -198,6 +206,28 @@ class LocationPage extends PureComponent {
           newSelectedIsps.push(clientIspId);
         });
         dispatch(LocationPageActions.changeSelectedClientIspIds(newSelectedIsps));
+      }
+    }
+
+    // This is the code for calling API
+    if (this.props.locationId) {
+      console.log("INCIDENT DATA ARGS: ", startDate, ", ", endDate, ", ", this.props.locationId)
+      // incidentData = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
+      
+      // OLD CODE FOR REFERENCE:
+        // incidentData = require('./sample_data/demo_incidentData.json');
+        // incidentData = getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont')
+    
+      // convert dates to moment objects within the incidentData object
+      if (incidentData) {
+        for (const asn in incidentData) {
+          for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
+            incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
+            incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
+            incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
+            incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
+          }
+        }
       }
     }
 
