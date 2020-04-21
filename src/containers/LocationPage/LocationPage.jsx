@@ -14,6 +14,7 @@ import * as LocationsSelectors from '../../redux/locations/selectors';
 import * as LocationsActions from '../../redux/locations/actions';
 import * as LocationClientIspActions from '../../redux/locationClientIsp/actions';
 
+import { getData } from './getIncidents.js';
 import timeAggregationFromDates from '../../utils/timeAggregationFromDates';
 import { multiMergeMetaIntoResults, mergeMetaIntoResults } from '../../utils/exports';
 import { metrics, defaultStartDate, defaultEndDate } from '../../constants';
@@ -795,6 +796,10 @@ class LocationPage extends PureComponent {
   render() {
     const { locationInfo } = this.props;
     const locationName = (locationInfo && (locationInfo.shortLabel || locationInfo.label)) || 'Location';
+
+    const dict = getData('2015-05-01T00:00:00Z', '2018-08-02T00:00:00Z', 'na');
+    console.log('this is the dict ...');
+    console.log(dict);
 
     return (
       <div className="LocationPage">

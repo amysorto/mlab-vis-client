@@ -86,6 +86,10 @@ module.exports = {
     ],
     extensions: ['', '.js', '.jsx'],
   },
+  node: {
+    child_process: 'empty',
+    fs: 'empty',
+  },
   // Can be constructed with __dirname and path.join.
   recordsPath: path.join(__dirname, 'webpack-records.json'),
   plugins: [
