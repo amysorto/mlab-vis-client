@@ -69,23 +69,8 @@ const fixedFields = [
   { id: 'lastYear', label: 'Last Year' },
 ];
 
-// TODO: Replace once API is implemented, currently reading in the sample incident data
 // eslint-disable-next-line global-require
-const incidentData = require('./sample_data/demo_incidentData.json');
-
-// convert dates to moment objects within the incidentData object
-if (incidentData) {
-  const incidentASNs = Object.keys(incidentData);
-  for (let asnIndex = 0; asnIndex < incidentASNs.length; asnIndex++){
-    const asn = incidentASNs[asnIndex];
-    for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
-      incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
-      incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
-      incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
-      incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
-    }
-  }
-}
+const incidentData = null;
 
 function mapStateToProps(state, propsWithUrl) {
   return {
@@ -202,6 +187,27 @@ class LocationPage extends PureComponent {
           newSelectedIsps.push(clientIspId);
         });
         dispatch(LocationPageActions.changeSelectedClientIspIds(newSelectedIsps));
+      }
+    }
+
+    // This is the code for calling API
+    if (this.props.locationId) {
+      // incidentData = await getData('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
+      
+      // OLD CODE FOR REFERENCE:
+        // incidentData = require('./sample_data/demo_incidentData.json');
+        // incidentData = getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont')
+    
+      // convert dates to moment objects within the incidentData object
+      if (incidentData) {
+        for (const asn in incidentData) {
+          for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
+            incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
+            incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
+            incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
+            incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
+          }
+        }
       }
     }
 
