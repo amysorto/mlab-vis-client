@@ -1,41 +1,20 @@
 // require modules
-import moment from 'moment';
-import { XMLHttpRequest } from "xmlhttprequest";
+const moment = require('moment');
+const axios = require('axios');
 
-async function getIncidentWithPromise(responseText, index) {
+async function getIncidentWithPromiseAxios(responseText, index) {
   const items = responseText.items;
-  const request = new XMLHttpRequest();
-  return new Promise(function(resolve, reject) {
-    request.onreadystatechange = function() {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          resolve(JSON.parse(request.responseText));          
-        } else {
-          reject('Error, status code = ' + request.status);
-        }
-      }
-    }
-    request.open('GET', items[index].mediaLink, true);
-    request.send();
-  });
+  const request = axios.get(items[index].mediaLink)
+  return request
+    .then(result => { return result.data; })
+    .catch(error => { throw error; });
 }
 
-
-async function getDataWithPromise() {
-  const request = new XMLHttpRequest();
-  return new Promise(function(resolve, reject) {
-    request.onreadystatechange = function() {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          resolve(JSON.parse(request.responseText));
-        } else {
-          reject('Error, status code = ' + request.status);
-        }
-      }
-    }
-    request.open('GET', 'https://storage.googleapis.com/storage/v1/b/incidents-location-hierarchy/o', true);
-    request.send()
-  });
+async function getDataWithPromiseAxios() {
+  const request = axios.get('https://storage.googleapis.com/storage/v1/b/incidents-location-hierarchy/o')
+  return request
+    .then(result => { return result.data; })
+    .catch(error => { throw error; });
 }
 
 /**
@@ -44,15 +23,15 @@ async function getDataWithPromise() {
  * @param {Moment, Moment, string}
  * @return {dictionary}
  */
-async function getData(startDate, endDate, locationCode) {
+async function getDataAxios(startDate, endDate, locationCode) {
   try {
     const dict = {};
     let count = 0;
 
-    let response = await getDataWithPromise();
+    let response = await getDataWithPromiseAxios();
 
     for (let i = 0; i < response.items.length; i++) {
-      let incident = await getIncidentWithPromise(response, i);
+      let incident = await getIncidentWithPromiseAxios(response, i);
       count += 1;
       for (let j = 0; j < incident.length; j++) {
         if (
@@ -69,20 +48,21 @@ async function getData(startDate, endDate, locationCode) {
         }
       }
     }
-    // TODO: delete, just for debugging
-    console.log(count);
-    console.log(dict);
+    // // TODO: delete, just for debugging
+    // console.log(count);
+    // console.log(dict);
   } catch(error) {
     console.log(error);
   }
 
+
 }
 
-// TODO: delete, just a sample call
-let startDate = '2015-05-01T00:00:00Z';
-let endDate = '2018-08-02T00:00:00Z';
-let locationCode = 'na';
-getData(startDate, endDate, locationCode);
+// // TODO: delete, just a sample call
+// let startDate = '2015-05-01T00:00:00Z';
+// let endDate = '2018-08-02T00:00:00Z';
+// let locationCode = 'na';
+// getDataAxios(startDate, endDate, locationCode);
 
-const _getData = getData;
-export { _getData as getData };
+// const _getData = getDataAxios;
+// export { _getData as getData };
