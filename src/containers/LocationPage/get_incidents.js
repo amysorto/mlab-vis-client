@@ -1,50 +1,41 @@
+// require modules
 const moment = require('moment');
+const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 
-// const { Storage } = require('@google-cloud/storage');
-var Storage = require('@google-cloud/storage')
 
-/**
- * Takes location code and inserts / where needed for file path
- * @param {string}
- * @return {string}
- */
-function getLocationPath(locationCode) {
-  const locationCodesArr = [];
-
-  if (locationCode.length > 6) {
-    for (let i = 0; i < 6; i += 2) {
-      locationCodesArr.push(locationCode.slice(i, i + 2));
-    }
-
-		locationCodesArr.push(locationCode.slice(6))
-    } else {
-        for (let i = 0; i < locationCode.length; i = i+2) {
-            locationCodesArr.push(locationCode.slice(i,i+2));
+async function getIncidentWithPromise(responseText, index) {
+  const items = responseText.items;
+  const request = new XMLHttpRequest();
+  return new Promise(function(resolve, reject) {
+    request.onreadystatechange = function() {
+      if (request.readyState === 4) {
+        if (request.status === 200) {
+          resolve(JSON.parse(request.responseText));          
+        } else {
+          reject('Error, status code = ' + request.status)
         }
+      }
     }
-    let path = ""
-
-    for (let i = 0; i < locationCodesArr.length; i++){
-            path += locationCodesArr[i];
-            path += "/";
-    }
-    console.log(path)
-	return path
+    request.open('GET', items[index].mediaLink, true);
+    request.send();
+  });
 }
 
 
-const storage = new Storage({ keyFilename: 'hmc-mlab-clinic-2019-e7987b0ad1cb.json' });
-const bucketName = 'incidents-location-hierarchy';
-
-// code from Human who Codes:
-// https://humanwhocodes.com/snippets/2019/05/nodejs-read-stream-promise/
-function readStream(stream) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-
-    stream.on('data', chunk => data += chunk);
-    stream.on('end', () => resolve(data));
-    stream.on('error', error => reject(error));
+async function getDataWithPromise(startDate, endDate, locationCode) {
+  const request = new XMLHttpRequest();
+  return new Promise(function(resolve, reject) {
+    request.onreadystatechange = function() {
+      if (request.readyState === 4) {
+        if (request.status === 200) {
+          resolve(JSON.parse(request.responseText));
+        } else {
+          reject('Error, status code = ' + request.status);
+        }
+      }
+    }
+    request.open('GET', 'https://storage.googleapis.com/storage/v1/b/incidents-location-hierarchy/o', true);
+    request.send()
   });
 }
 
@@ -54,33 +45,42 @@ function readStream(stream) {
  * @param {Moment, Moment, string}
  * @return {dictionary}
  */
-export default async function getIncidents(startDate, endDate, locationCode){
-      let dict= {};
-  
-      const [files] = await storage.bucket(bucketName).getFiles({prefix:getLocationPath(locationCode)});
-      for (let i = 0; i < files.length; i++){
-          let file = files[i]
-          let stream = file.createReadStream()
-          let incidents = await readStream(stream)
-          incidents = JSON.parse(incidents)
-          for (let j = 0; j < incidents.length; j++) {
-              let incident = incidents[j]
-              if (moment(incident["goodPeriodStart"]).isAfter(startDate) && moment(incident["badPeriodEnd"]).isBefore(endDate)){
-                  let asn = incident["aSN"]
-                  if (asn in dict){
-                      dict[asn] = dict[asn].push(incident)
-                  } else{
-                      dict[asn] = [incident]
-                  }
-              }
-          }
-      }
-      
-      return dict
+async function getData(startDate, endDate, locationCode) {
+  try {
+    const dict = {};
+    let count = 0;
+
+    let response = await getDataWithPromise(startDate, endDate, locationCode);
+
+    for (let i = 0; i < response.items.length; i++) {
+      let incident = await getIncidentWithPromise(response, i);
+      count += 1;
+      for (let j = 0; j < incident.length; j++) {
+        if (
+          incident[j].location === locationCode &&
+          moment(incident[j].goodPeriodStart).isAfter(startDate) &&
+          moment(incident[j].badPeriodEnd).isBefore(endDate)
+        ) {
+          const asn = incident[j].aSN;
+          if (asn in dict) {
+            dict[asn] = dict[asn].push(incident[j]);
+          } else {
+            dict[asn] = [incident[j]];
+          }
+        }
+      }
+    }
+    // TODO: delete, just for debugging
+    console.log(count);
+    console.log(dict);
+  } catch(error) {
+    console.log(error);
   }
 
-// example front end call to API
-// async function frontEndCall(){
-//     let D = await getIncidents('2013-04-30T00:00:00Z', '2019-03-05T00:00:00Z','nauscaclaremont').catch(console.error)
-//     // console.log(D)
-// }
+}
+
+// TODO: delete, just a sample call
+let startDate = '2015-05-01T00:00:00Z';
+let endDate = '2018-08-02T00:00:00Z';
+let locationCode = 'na';
+getData(startDate, endDate, locationCode);
