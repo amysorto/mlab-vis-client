@@ -14,7 +14,7 @@ import * as LocationsSelectors from '../../redux/locations/selectors';
 import * as LocationsActions from '../../redux/locations/actions';
 import * as LocationClientIspActions from '../../redux/locationClientIsp/actions';
 
-import { useAsyncHook } from './getIncidents.js';
+// import { useAsyncHook } from './getIncidents.js';
 import axios from 'axios';
 
 import timeAggregationFromDates from '../../utils/timeAggregationFromDates';
@@ -72,6 +72,7 @@ const fixedFields = [
 ];
 
 // eslint-disable-next-line global-require
+var incidentData = null;
 
 function mapStateToProps(state, propsWithUrl) {
   return {
@@ -141,7 +142,7 @@ class LocationPage extends PureComponent {
     };
 
     // setup hook
-    var incidentData = useAsyncHook(props.startDate, props.endDate, props.locationId);
+    incidentData = this.useAsyncHook(props.startDate, props.endDate, props.locationId);
 
     // bind handlers
     this.onHighlightHourly = this.onHighlightHourly.bind(this);
@@ -156,6 +157,44 @@ class LocationPage extends PureComponent {
     this.onShowIncidentChange = this.onShowIncidentChange.bind(this);
     this.onDateRangeChange = this.onDateRangeChange.bind(this);
     this.changeIncidentASN = this.changeIncidentASN.bind(this);
+  }
+
+  useAsyncHook(startDate, endDate, locationId) {
+    const [result, setResult] = React.useState({});
+  
+    React.useEffect(() => {
+      async function fetchIncidentData() {
+        try {
+          const dict = {};
+  
+          const response = await getDataWithPromiseAxios();
+  
+          for (let i = 0; i < response.items.length; i++) {
+            let incident = await getIncidentWithPromiseAxios(response, i);
+            for (let j = 0; j < incident.length; j++) {
+              if (
+                incident[j].location === locationCode &&
+                moment(incident[j].goodPeriodStart).isAfter(startDate) &&
+                moment(incident[j].badPeriodEnd).isBefore(endDate)
+              ) {
+                const asn = incident[j].aSN;
+                if (asn in dict) {
+                  dict[asn] = dict[asn].push(incident[j]);
+                } else {
+                  dict[asn] = [incident[j]];
+                }
+              }
+            }
+          }
+  
+          setResult(dict);
+        } catch (error){ console.log("error inside useAsyncHook: ", error);}
+      }
+  
+      fetchIncidentData();
+    }, [startDate, endDate, locationId]);
+  
+    return result;
   }
 
   componentDidMount() {
