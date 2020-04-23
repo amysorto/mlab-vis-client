@@ -72,7 +72,6 @@ const fixedFields = [
 ];
 
 // eslint-disable-next-line global-require
-let incidentData = null;
 
 function mapStateToProps(state, propsWithUrl) {
   return {
@@ -138,6 +137,7 @@ class LocationPage extends PureComponent {
 
     this.state = {
       incident_asn: null, // This is the selected ISP object
+      incidentData: null,
     };
 
     // bind handlers
@@ -157,6 +157,7 @@ class LocationPage extends PureComponent {
 
   componentDidMount() {
     this.fetchData(this.props);
+    this.fetchIncidentData(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -217,6 +218,7 @@ class LocationPage extends PureComponent {
           }
         }
         console.log(dict);
+        return dict;
       } catch(error) {
         console.log(error);
       }
@@ -224,20 +226,22 @@ class LocationPage extends PureComponent {
 
     //! /////////////////////////////////////////////////////////
 
-    incidentData = await getDataAxios(startDate, endDate, locationId)
-    console.log("incidentData: ", incidentData);
-    
-    // convert dates to moment objects within the incidentData object
-    if (incidentData) {
-      for (const asn in incidentData) {
-        for (let incIndex = 0; incIndex < incidentData[asn].length; incIndex++) {
-          incidentData[asn][incIndex].goodPeriodStart = moment(incidentData[asn][incIndex].goodPeriodStart);
-          incidentData[asn][incIndex].goodPeriodEnd = moment(incidentData[asn][incIndex].goodPeriodEnd);
-          incidentData[asn][incIndex].badPeriodStart = moment(incidentData[asn][incIndex].badPeriodStart);
-          incidentData[asn][incIndex].badPeriodEnd = moment(incidentData[asn][incIndex].badPeriodEnd);
+    await getDataAxios(startDate, endDate, locationId).then(function (tempincidentData) {
+      console.log("incidentData: ", tempincidentData);
+      
+      // convert dates to moment objects within the incidentData object
+      if (tempincidentData) {
+        for (const asn in tempincidentData) {
+          for (let incIndex = 0; incIndex < tempincidentData[asn].length; incIndex++) {
+            tempincidentData[asn][incIndex].goodPeriodStart = moment(tempincidentData[asn][incIndex].goodPeriodStart);
+            tempincidentData[asn][incIndex].goodPeriodEnd = moment(tempincidentData[asn][incIndex].goodPeriodEnd);
+            tempincidentData[asn][incIndex].badPeriodStart = moment(tempincidentData[asn][incIndex].badPeriodStart);
+            tempincidentData[asn][incIndex].badPeriodEnd = moment(tempincidentData[asn][incIndex].badPeriodEnd);
+          }
         }
+        this.setState({incidentData: tempincidentData});
       }
-    }
+    }).catch(console.log("error with async incData!"));
   }
 
   /**
@@ -268,8 +272,6 @@ class LocationPage extends PureComponent {
         dispatch(LocationPageActions.changeSelectedClientIspIds(newSelectedIsps));
       }
     }
-
-    this.fetchIncidentData(props);
 
     this.fetchSelectedClientIspData(props);
   }
@@ -511,7 +513,7 @@ class LocationPage extends PureComponent {
       <div className="client-isp-selector">
         <h5>Client ISPs <HelpTip id="client-isp-tip" /></h5>
         <IspSelectWithIncidents
-          incidentData={incidentData}
+          incidentData={this.state.incidentData}
           isps={asnToISPObj}
           selected={selectedClientIspInfo}
           onChange={this.onSelectedClientIspsChange}
@@ -624,7 +626,7 @@ class LocationPage extends PureComponent {
               highlightDate={highlightTimeSeriesDate}
               onHighlightLine={this.onHighlightTimeSeriesLine}
               highlightLine={highlightTimeSeriesLine}
-              incidentData={incidentData}
+              incidentData={this.state.incidentData}
               selectedASN={this.state.incident_asn ? this.state.incident_asn : null}
               yFormatter={viewMetric.formatter}
               xKey="date"
