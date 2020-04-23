@@ -58,6 +58,44 @@ async function getDataAxios(startDate, endDate, locationCode) {
 
 }
 
+export default function useAsyncHook(startDate, endDate, locationId) {
+  const [result, setResult] = React.useState({});
+
+  React.useEffect(() => {
+    async function fetchIncidentData() {
+      try {
+        const dict = {};
+
+        const response = await getDataWithPromiseAxios();
+
+        for (let i = 0; i < response.items.length; i++) {
+          let incident = await getIncidentWithPromiseAxios(response, i);
+          for (let j = 0; j < incident.length; j++) {
+            if (
+              incident[j].location === locationCode &&
+              moment(incident[j].goodPeriodStart).isAfter(startDate) &&
+              moment(incident[j].badPeriodEnd).isBefore(endDate)
+            ) {
+              const asn = incident[j].aSN;
+              if (asn in dict) {
+                dict[asn] = dict[asn].push(incident[j]);
+              } else {
+                dict[asn] = [incident[j]];
+              }
+            }
+          }
+        }
+
+        setResult(dict);
+      } catch (error){ console.log("error inside useAsyncHook: ", error);}
+    }
+
+    fetchIncidentData();
+  }, [startDate, endDate, locationId]);
+
+  return result;
+}
+
 // // TODO: delete, just a sample call
 // let startDate = '2015-05-01T00:00:00Z';
 // let endDate = '2018-08-02T00:00:00Z';

@@ -14,7 +14,7 @@ import * as LocationsSelectors from '../../redux/locations/selectors';
 import * as LocationsActions from '../../redux/locations/actions';
 import * as LocationClientIspActions from '../../redux/locationClientIsp/actions';
 
-// import { getData } from './getIncidents.js';
+import { useAsyncHook } from './getIncidents.js';
 import axios from 'axios';
 
 import timeAggregationFromDates from '../../utils/timeAggregationFromDates';
@@ -137,8 +137,11 @@ class LocationPage extends PureComponent {
 
     this.state = {
       incident_asn: null, // This is the selected ISP object
-      incidentData: null,
+      // incidentData: useAsyncHook(props.startDate, props.endDate, props.locationId),
     };
+
+    // setup hook
+    var incidentData = useAsyncHook(props.startDate, props.endDate, props.locationId);
 
     // bind handlers
     this.onHighlightHourly = this.onHighlightHourly.bind(this);
@@ -513,7 +516,7 @@ class LocationPage extends PureComponent {
       <div className="client-isp-selector">
         <h5>Client ISPs <HelpTip id="client-isp-tip" /></h5>
         <IspSelectWithIncidents
-          incidentData={this.state.incidentData}
+          incidentData={incidentData}
           isps={asnToISPObj}
           selected={selectedClientIspInfo}
           onChange={this.onSelectedClientIspsChange}
@@ -626,7 +629,7 @@ class LocationPage extends PureComponent {
               highlightDate={highlightTimeSeriesDate}
               onHighlightLine={this.onHighlightTimeSeriesLine}
               highlightLine={highlightTimeSeriesLine}
-              incidentData={this.state.incidentData}
+              incidentData={incidentData}
               selectedASN={this.state.incident_asn ? this.state.incident_asn : null}
               yFormatter={viewMetric.formatter}
               xKey="date"
