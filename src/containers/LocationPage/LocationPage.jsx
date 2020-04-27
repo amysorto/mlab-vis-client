@@ -138,11 +138,8 @@ class LocationPage extends PureComponent {
 
     this.state = {
       incident_asn: null, // This is the selected ISP object
-      // incidentData: useAsyncHook(props.startDate, props.endDate, props.locationId),
+      incidentData: undefined,
     };
-
-    // setup hook
-    incidentData = this.useAsyncHook(props.startDate, props.endDate, props.locationId);
 
     // bind handlers
     this.onHighlightHourly = this.onHighlightHourly.bind(this);
@@ -159,47 +156,8 @@ class LocationPage extends PureComponent {
     this.changeIncidentASN = this.changeIncidentASN.bind(this);
   }
 
-  useAsyncHook(startDate, endDate, locationId) {
-    const [result, setResult] = React.useState({});
-  
-    React.useEffect(() => {
-      async function fetchIncidentData() {
-        try {
-          const dict = {};
-  
-          const response = await getDataWithPromiseAxios();
-  
-          for (let i = 0; i < response.items.length; i++) {
-            let incident = await getIncidentWithPromiseAxios(response, i);
-            for (let j = 0; j < incident.length; j++) {
-              if (
-                incident[j].location === locationCode &&
-                moment(incident[j].goodPeriodStart).isAfter(startDate) &&
-                moment(incident[j].badPeriodEnd).isBefore(endDate)
-              ) {
-                const asn = incident[j].aSN;
-                if (asn in dict) {
-                  dict[asn] = dict[asn].push(incident[j]);
-                } else {
-                  dict[asn] = [incident[j]];
-                }
-              }
-            }
-          }
-  
-          setResult(dict);
-        } catch (error){ console.log("error inside useAsyncHook: ", error);}
-      }
-  
-      fetchIncidentData();
-    }, [startDate, endDate, locationId]);
-  
-    return result;
-  }
-
   componentDidMount() {
     this.fetchData(this.props);
-    this.fetchIncidentData(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -314,6 +272,8 @@ class LocationPage extends PureComponent {
         dispatch(LocationPageActions.changeSelectedClientIspIds(newSelectedIsps));
       }
     }
+
+    this.fetchIncidentData(props);
 
     this.fetchSelectedClientIspData(props);
   }
