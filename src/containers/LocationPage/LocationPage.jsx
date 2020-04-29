@@ -210,18 +210,18 @@ class LocationPage extends PureComponent {
         let response = await getDataWithPromiseAxios();
 
         for (let i = 0; i < response.items.length; i++) {
-          let incident = await getIncidentWithPromiseAxios(response, i);
-          for (let j = 0; j < incident.length; j++) {
+          let incidentArr = await getIncidentWithPromiseAxios(response, i);
+          for (let j = 0; j < incidentArr.length; j++) {
             if (
-              incident[j].location === locationCode &&
-              moment(incident[j].goodPeriodStart).isAfter(startDate) &&
-              moment(incident[j].badPeriodEnd).isBefore(endDate)
+              incidentArr[j].location === locationCode &&
+              moment(incidentArr[j].goodPeriodStart).isAfter(startDate) &&
+              moment(incidentArr[j].badPeriodEnd).isBefore(endDate)
             ) {
-              const asn = incident[j].aSN;
+              const asn = incidentArr[j].aSN;
               if (asn in dict) {
-                dict[asn] = dict[asn].push(incident[j]);
+                dict[asn] = dict[asn].push(incidentArr[j]);
               } else {
-                dict[asn] = [incident[j]];
+                dict[asn] = [incidentArr[j]];
               }
             }
           }
