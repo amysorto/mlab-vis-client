@@ -240,12 +240,14 @@ class LocationPage extends PureComponent {
       
       // convert dates to moment objects within the incidentData object
       if (tempincidentData) {
-        for (const asn in tempincidentData) {
+        for (const asnIncidents in tempincidentData) {
           for (let incIndex = 0; incIndex < tempincidentData[asn].length; incIndex++) {
-            tempincidentData[asn][incIndex].goodPeriodStart = moment(tempincidentData[asn][incIndex].goodPeriodStart);
-            tempincidentData[asn][incIndex].goodPeriodEnd = moment(tempincidentData[asn][incIndex].goodPeriodEnd);
-            tempincidentData[asn][incIndex].badPeriodStart = moment(tempincidentData[asn][incIndex].badPeriodStart);
-            tempincidentData[asn][incIndex].badPeriodEnd = moment(tempincidentData[asn][incIndex].badPeriodEnd);
+            const currentInc = asnIncidents[incIndex];
+
+            currentInc.goodPeriodStart = moment(currentInc.goodPeriodStart);
+            currentInc.goodPeriodEnd = moment(currentInc.goodPeriodEnd);
+            currentInc.badPeriodStart = moment(currentInc.badPeriodStart);
+            currentInc.badPeriodEnd = moment(currentInc.badPeriodEnd);
           }
         }
         this.setState({incidentData: tempincidentData});
