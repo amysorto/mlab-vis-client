@@ -174,7 +174,6 @@ class LocationPage extends PureComponent {
     /**
      * Makes an http request to the Google Cloud Storage bucket containing M-Lab's incident data file hierarchy and returns
      * the resulting data.
-     * @param {dictionary, int}
      * @return {dictionary}
      */
     async function getDataWithPromiseAxios() {
