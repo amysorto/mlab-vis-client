@@ -171,6 +171,12 @@ class LocationPage extends PureComponent {
     //! ////This code should be imported from getIncidents.js////
     //! /////////////////////////////////////////////////////////
     
+    /**
+     * Makes an http request to the Google Cloud Storage bucket containing M-Lab's incident data file hierarchy and returns
+     * the resulting data.
+     * @param {dictionary, int}
+     * @return {dictionary}
+     */
     async function getDataWithPromiseAxios() {
       const request = axios.get('https://storage.googleapis.com/storage/v1/b/incidents-location-hierarchy/o');
       return request
@@ -178,6 +184,12 @@ class LocationPage extends PureComponent {
         .catch(error => { throw error; });
     }
 
+    /**
+     * Takes in the data from getDataWithPromise and goes a level further, http requesting into the mediaLink
+     * member to get the actual incident information object.
+     * @param {dictionary, int}
+     * @return {dictionary}
+     */
     async function getIncidentWithPromiseAxios(responseText, index) {
       const items = responseText.items;
       const request = axios.get(items[index].mediaLink)
@@ -195,13 +207,11 @@ class LocationPage extends PureComponent {
     async function getDataAxios(startDate, endDate, locationCode) {
       try {
         const dict = {};
-        let count = 0;
 
         let response = await getDataWithPromiseAxios();
 
         for (let i = 0; i < response.items.length; i++) {
           let incident = await getIncidentWithPromiseAxios(response, i);
-          count += 1;
           for (let j = 0; j < incident.length; j++) {
             if (
               incident[j].location === locationCode &&
